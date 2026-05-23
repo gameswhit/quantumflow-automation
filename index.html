@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QuantumFlow — AI Workflow Automation Engine | Automate Anything</title>
+<meta name="description" content="QuantumFlow is an AI-native workflow automation engine that designs, optimizes, and runs complex multi-step pipelines. Powered by MiMo, Claude, and DeepSeek models." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080604;--bg-2:#0f0c08;--ink:#f5efe6;--muted:#a89a84;
+    --accent:#f59e0b;--accent-2:#ef4444;--accent-3:#22d3ee;
+    --line:rgba(255,255,255,.06);--card:rgba(255,255,255,.03);--card-hi:rgba(255,255,255,.06);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;overflow-x:hidden;scroll-behavior:smooth}
+  a{color:inherit;text-decoration:none}
+  code,pre,.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+  .bg-canvas{position:fixed;inset:0;z-index:-2}
+  .bg-grad{position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(800px 500px at 10% 10%, rgba(245,158,11,.2), transparent 60%),
+      radial-gradient(700px 500px at 90% 15%, rgba(239,68,68,.12), transparent 60%),
+      radial-gradient(600px 500px at 40% 100%, rgba(34,211,238,.1), transparent 60%),
+      linear-gradient(180deg,#080604,#0c0a06);
+  }
+  .bg-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.1;
+    background-image:
+      linear-gradient(rgba(245,158,11,.1) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(245,158,11,.1) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(ellipse at 50% 20%,#000 25%,transparent 75%);
+  }
+
+  .nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px) saturate(140%);
+    background:rgba(8,6,4,.6);border-bottom:1px solid var(--line)}
+  .nav-inner{max-width:1240px;margin:auto;padding:13px 28px;display:flex;align-items:center;gap:24px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+  .logo{width:30px;height:30px;border-radius:8px;
+    background:conic-gradient(from 140deg,#f59e0b,#ef4444,#22d3ee,#f59e0b);
+    box-shadow:0 0 20px rgba(245,158,11,.45),inset 0 0 10px rgba(255,255,255,.2);
+    position:relative;overflow:hidden}
+  .logo::after{content:"";position:absolute;inset:5px;border-radius:5px;background:#0c0a06}
+  .nav-links{display:flex;gap:4px;flex-wrap:wrap;margin-left:6px}
+  .nav-links a{padding:8px 11px;border-radius:9px;color:var(--muted);font-size:13.5px;transition:.2s}
+  .nav-links a:hover{color:var(--ink);background:var(--card)}
+  .nav-cta{margin-left:auto;display:flex;gap:10px}
+  .btn{padding:10px 16px;border-radius:11px;font-size:13.5px;font-weight:600;border:1px solid var(--line);
+    background:var(--card);color:var(--ink);cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:8px}
+  .btn:hover{background:var(--card-hi);transform:translateY(-1px)}
+  .btn-accent{background:linear-gradient(135deg,#f59e0b,#ef4444);border:none;color:#fff}
+  .btn-accent:hover{filter:brightness(1.1);box-shadow:0 8px 30px rgba(245,158,11,.3)}
+
+  section{max-width:1240px;margin:0 auto;padding:90px 28px;position:relative}
+  .eyebrow{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border:1px solid var(--line);
+    border-radius:999px;font-size:12px;color:var(--muted);background:var(--card)}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+  h1{font-size:clamp(40px,5.8vw,72px);line-height:1.06;letter-spacing:-.02em;font-weight:700;margin:18px 0}
+  h2{font-size:clamp(26px,3.2vw,42px);line-height:1.1;letter-spacing:-.01em;font-weight:600;margin-bottom:14px}
+  h3{font-size:19px;font-weight:600;margin-bottom:7px}
+  p.lead{font-size:17px;color:var(--muted);max-width:660px;line-height:1.62}
+  .grad-text{background:linear-gradient(135deg,#f59e0b 0%,#ef4444 40%,#22d3ee 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .hero{padding-top:56px;padding-bottom:36px}
+  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center}
+  @media(max-width:980px){.hero-grid{grid-template-columns:1fr}}
+  .hero-cta{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:44px}
+  .stat{padding:18px;border:1px solid var(--line);background:var(--card);border-radius:14px}
+  .stat b{display:block;font-size:24px;font-weight:700}.stat span{color:var(--muted);font-size:13px}
+
+  .code{border:1px solid var(--line);background:linear-gradient(180deg,rgba(18,14,10,.9),rgba(10,8,5,.9));
+    border-radius:14px;overflow:hidden;box-shadow:0 28px 56px -16px rgba(0,0,0,.5),0 0 0 1px rgba(245,158,11,.06)}
+  .code-bar{display:flex;gap:6px;padding:11px 14px;border-bottom:1px solid var(--line);align-items:center}
+  .dot-r{width:11px;height:11px;border-radius:50%}
+  .dr1{background:#ff5f57}.dr2{background:#febc2e}.dr3{background:#28c840}
+  .code-bar .file{margin-left:14px;color:var(--muted);font-size:12px}
+  .code pre{padding:16px 18px;font-size:13px;line-height:1.58;color:#d8cfc0;overflow:auto;max-height:360px}
+  .kw{color:#fbbf24}.fn{color:#22d3ee}.str{color:#86efac}.cm{color:#6b7280;font-style:italic}.num{color:#f87171}
+
+  .grid{display:grid;gap:16px}
+  .grid-3{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(4,1fr)}.grid-2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:880px){.grid-3,.grid-4,.grid-2{grid-template-columns:1fr}}
+  .card{padding:22px;border:1px solid var(--line);background:var(--card);border-radius:var(--radius);transition:.25s;position:relative;overflow:hidden}
+  .card:hover{transform:translateY(-3px);background:var(--card-hi);border-color:rgba(245,158,11,.25)}
+  .card .icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;
+    background:linear-gradient(135deg,rgba(245,158,11,.22),rgba(239,68,68,.12));
+    border:1px solid rgba(245,158,11,.28);font-size:19px;margin-bottom:13px}
+  .card p{color:var(--muted);font-size:14px;line-height:1.6}
+
+  /* Flow builder */
+  .flow-canvas{position:relative;padding:36px 24px;border:1px solid var(--line);background:var(--card);border-radius:16px;overflow:hidden}
+  .flow-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .flow-node{padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:rgba(245,158,11,.06);
+    text-align:center;font-size:13px;font-weight:600;min-width:110px;position:relative}
+  .flow-node.active{border-color:var(--accent);box-shadow:0 0 20px rgba(245,158,11,.2)}
+  .flow-arrow{color:var(--accent);font-size:20px;flex-shrink:0}
+  .flow-branch{display:flex;flex-direction:column;gap:8px}
+  .flow-branch .flow-node{font-size:12px;padding:10px 14px}
+
+  /* Timeline */
+  .timeline{position:relative;padding-left:34px;margin:28px 0}
+  .timeline::before{content:"";position:absolute;left:10px;top:0;bottom:0;width:2px;
+    background:linear-gradient(180deg,var(--accent),var(--accent-2),var(--accent-3))}
+  .tl-item{position:relative;margin-bottom:26px}
+  .tl-item::before{content:"";position:absolute;left:-28px;top:4px;width:12px;height:12px;border-radius:50%;
+    background:var(--accent);box-shadow:0 0 12px rgba(245,158,11,.5)}
+
+  /* Pricing */
+  .price{padding:26px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+  .price.hot{border-color:rgba(245,158,11,.5);background:linear-gradient(180deg,rgba(245,158,11,.08),rgba(239,68,68,.04));
+    box-shadow:0 0 50px rgba(245,158,11,.12)}
+  .price h3{font-size:17px;color:var(--muted)}.price .amt{font-size:40px;font-weight:700;margin:5px 0 2px}
+  .price ul{list-style:none;margin:16px 0}.price li{padding:7px 0;color:var(--muted);font-size:14px;display:flex;align-items:center;gap:9px}
+  .price li::before{content:"✓";color:var(--accent);font-weight:700}
+  .ribbon{position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;
+    background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff}
+
+  /* Template cards */
+  .tmpl{padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--card);display:flex;gap:14px;align-items:flex-start}
+  .tmpl:hover{border-color:rgba(245,158,11,.25)}
+  .tmpl .ico{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(239,68,68,.1));flex-shrink:0}
+
+  /* Proof terminal */
+  .proof{padding:20px;background:#060503;border:1px solid var(--line);border-radius:12px;font-family:'JetBrains Mono';font-size:13px;color:#b8aa94;overflow:auto;line-height:1.6}
+  .proof .ok{color:var(--accent)}.proof .info{color:var(--accent-3)}.proof .warn{color:#fbbf24}
+
+  /* FAQ */
+  details{padding:16px 20px;border:1px solid var(--line);border-radius:12px;background:var(--card);margin-bottom:10px}
+  details[open]{background:var(--card-hi)}
+  details summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  details summary::after{content:"＋";font-size:20px;color:var(--accent)}
+  details[open] summary::after{content:"－"}
+  details p{color:var(--muted);margin-top:12px;line-height:1.6}
+
+  footer{border-top:1px solid var(--line);padding:44px 28px 28px;background:rgba(8,6,4,.7);margin-top:56px}
+  .foot-inner{max-width:1240px;margin:auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:34px}
+  @media(max-width:880px){.foot-inner{grid-template-columns:1fr 1fr}}
+  .foot-inner h4{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:14px}
+  .foot-inner ul{list-style:none}.foot-inner li{margin:7px 0}
+  .foot-inner li a{color:var(--muted);font-size:14px;transition:.2s}.foot-inner li a:hover{color:var(--ink)}
+  .copy{text-align:center;color:var(--muted);font-size:13px;margin-top:32px;padding-top:18px;border-top:1px solid var(--line)}
+
+  .link-banner{display:flex;align-items:center;gap:10px;padding:10px 16px;border:1px solid rgba(245,158,11,.2);
+    border-radius:999px;background:rgba(245,158,11,.06);font-size:13px;color:var(--accent);margin-top:14px;cursor:pointer;transition:.2s;width:fit-content}
+  .link-banner:hover{background:rgba(245,158,11,.12)}
+
+  .ecosystem{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}
+  .eco-card{padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--card);text-align:center;transition:.2s}
+  .eco-card:hover{border-color:rgba(245,158,11,.3)}
+  .eco-card .ico{font-size:32px;display:block;margin-bottom:10px}
+  .eco-card h4{font-size:15px;margin-bottom:4px}
+  .eco-card p{color:var(--muted);font-size:13px}
+  .eco-card a{color:var(--accent);font-size:12px;margin-top:8px;display:inline-block}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s ease}
+  .reveal.in{opacity:1;transform:none}
+  .div-line{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:56px 0}
+
+  .int-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  @media(max-width:780px){.int-grid{grid-template-columns:repeat(3,1fr)}}
+  .int-item{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--card);text-align:center;font-size:13px;transition:.2s}
+  .int-item:hover{border-color:rgba(245,158,11,.3)}
+  .int-item .ico{font-size:28px;display:block;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<canvas class="bg-canvas" id="bgCanvas"></canvas>
+<div class="bg-grad"></div>
+<div class="bg-grid"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="brand"><div class="logo"></div> QuantumFlow</a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#builder">Builder</a>
+      <a href="#templates">Templates</a>
+      <a href="#integrations">Integrations</a>
+      <a href="#ecosystem">Ecosystem</a>
+      <a href="#usecases">Use Cases</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#docs">Docs</a>
+      <a href="#blog">Blog</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn" href="#docs">Sign in</a>
+      <a class="btn btn-accent" href="#pricing">Start free →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-grid">
+    <div class="reveal">
+      <span class="eyebrow"><span class="dot"></span> Now powered by MiMo · 100T Token Initiative</span>
+      <h1>Automate anything with <span class="grad-text">AI-designed workflows</span>.</h1>
+      <p class="lead">QuantumFlow is an AI-native workflow automation engine. Describe your process in plain English, and MiMo designs, optimizes, and runs multi-step pipelines across 200+ services — with error handling, branching, and retries built in.</p>
+      <div class="hero-cta">
+        <a class="btn btn-accent" href="#pricing">Start automating free</a>
+        <a class="btn" href="#builder">See the builder →</a>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px">
+        <a class="link-banner" href="https://nebulacraft-ai-studio.vercel.app" target="_blank">⚡ Sister project: NebulaCraft (code synthesis) →</a>
+        <a class="link-banner" href="https://pulsarops-devops-copilot.vercel.app" target="_blank">📡 Sister project: PulsarOps (DevOps) →</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>8.2M</b><span>workflows run / month</span></div>
+        <div class="stat"><b>200+</b><span>service connectors</span></div>
+        <div class="stat"><b>99.98%</b><span>execution uptime</span></div>
+        <div class="stat"><b>&lt;800ms</b><span>trigger latency</span></div>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <div class="code">
+        <div class="code-bar">
+          <span class="dot-r dr1"></span><span class="dot-r dr2"></span><span class="dot-r dr3"></span>
+          <span class="file mono">~/quantumflow/workflow.qf.yaml</span>
+        </div>
+<pre><span class="cm"># Natural-language workflow → executable YAML</span>
+<span class="kw">name</span>: <span class="str">"New user onboarding"</span>
+<span class="kw">trigger</span>:
+  <span class="kw">type</span>: <span class="str">webhook</span>
+  <span class="kw">source</span>: <span class="str">stripe.checkout.completed</span>
+
+<span class="kw">steps</span>:
+  - <span class="fn">wait</span>(<span class="num">30</span>s)
+  - <span class="fn">send_email</span>(
+      to: <span class="str">user.email</span>,
+      template: <span class="str">welcome</span>
+    )
+  - <span class="fn">create_task</span>(
+      service: <span class="str">linear</span>,
+      title: <span class="str">"Onboard ${user.name}"</span>,
+      assign: <span class="str">@accounts</span>
+    )
+  - <span class="fn">if</span>(user.plan == <span class="str">"enterprise"</span>):
+    - <span class="fn">page_slack</span>(channel: <span class="str">#sales</span>)
+</pre>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <span style="padding:6px 12px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted);background:var(--card)">mimo-v2.5-pro</span>
+        <span style="padding:6px 12px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted);background:var(--card)">claude-sonnet-4</span>
+        <span style="padding:6px 12px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted);background:var(--card)">deepseek-v3</span>
+        <span style="padding:6px 12px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted);background:var(--card)">+14 more</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> Capabilities</span>
+  <h2>Everything to automate your operations</h2>
+  <p class="lead">From simple zap-style automations to complex multi-branch pipelines with AI decision nodes — QuantumFlow scales with your ambition.</p>
+  <div class="grid grid-3" style="margin-top:32px">
+    <div class="card"><div class="icon">🧠</div><h3>AI Workflow Designer</h3><p>Describe what you want in English. MiMo decomposes it into steps, picks the right connectors, and wires up error handling automatically.</p></div>
+    <div class="card"><div class="icon">🔀</div><h3>Visual Flow Builder</h3><p>Drag-and-drop canvas with real-time preview. Branch on conditions, loop over arrays, fan-out/fan-in parallel execution.</p></div>
+    <div class="card"><div class="icon">🔗</div><h3>200+ Connectors</h3><p>Stripe, Shopify, Slack, GitHub, Linear, Jira, Notion, Airtable, PostgreSQL, MongoDB, S3, and 190+ more — first-party maintained.</p></div>
+    <div class="card"><div class="icon">⏱</div><h3>Smart Scheduling</h3><p>Cron, interval, event-based, or AI-predicted triggers. QuantumFlow learns your usage patterns and pre-warms executors.</p></div>
+    <div class="card"><div class="icon">🛡</div><h3>Error Recovery</h3><p>Automatic retries with exponential backoff. Dead-letter queues. Human-in-the-loop approval gates for sensitive actions.</p></div>
+    <div class="card"><div class="icon">📊</div><h3>Execution Analytics</h3><p>Real-time dashboards: step durations, failure rates, cost per execution. AI-generated optimization suggestions.</p></div>
+    <div class="card"><div class="icon">🔐</div><h3>Secret Vault</h3><p>Per-workflow encrypted credential storage. OAuth2 flows handled automatically. SOC 2 compliant.</p></div>
+    <div class="card"><div class="icon">🌐</div><h3>Multi-Region</h3><p>Run workflows in US, EU, or APAC. Data residency controls for GDPR and compliance requirements.</p></div>
+    <div class="card"><div class="icon">🧩</div><h3>Custom Code Nodes</h3><p>Drop in Python, JavaScript, or shell scripts as workflow steps. Full sandbox with npm/pip dependencies.</p></div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- BUILDER -->
+<section id="builder" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> Visual Builder</span>
+  <h2>Design workflows visually — or let AI do it</h2>
+  <p class="lead">The flow canvas shows your pipeline in real-time. Every node is inspectable, testable, and debuggable.</p>
+
+  <div class="flow-canvas" style="margin-top:28px">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:18px;font-family:'JetBrains Mono'">// Example: E-commerce order fulfillment pipeline</div>
+    <div class="flow-row">
+      <div class="flow-node active">🔔 Webhook<br><span style="font-size:11px;color:var(--muted)">order.created</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node">💳 Verify Payment<br><span style="font-size:11px;color:var(--muted)">Stripe API</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-branch">
+        <div class="flow-node" style="border-color:rgba(34,211,238,.4)">✅ Digital → Send License</div>
+        <div class="flow-node" style="border-color:rgba(239,68,68,.4)">📦 Physical → Ship via ShipStation</div>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node">📧 Email Receipt<br><span style="font-size:11px;color:var(--muted)">SendGrid</span></div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node active">📊 Log Analytics<br><span style="font-size:11px;color:var(--muted)">Mixpanel</span></div>
+    </div>
+  </div>
+
+  <div class="proof" style="margin-top:24px">
+<span class="info">[quantumflow]</span> workflow "order-fulfillment" compiled <span class="ok">✓</span>
+<span class="info">[16:30:01]</span> trigger: webhook order.created (user: cus_Nx8kL2)
+<span class="info">[16:30:01]</span> step 1: stripe.payment_intent.retrieve → <span class="ok">succeeded ($149.00)</span>
+<span class="info">[16:30:02]</span> step 2: branch → product.type == "digital"
+<span class="info">[16:30:03]</span> step 3: sendgrid.mail.send → license key <span class="ok">[delivered]</span>
+<span class="info">[16:30:04]</span> step 4: mixpanel.track("order.completed") <span class="ok">✓</span>
+<span class="ok">[16:30:04]</span> pipeline done · 3.2s · $0.0004 cost · 0 retries
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- TEMPLATES -->
+<section id="templates" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> Templates</span>
+  <h2>Start from a template, customize everything</h2>
+  <p class="lead">50+ pre-built workflows for common business processes. Fork, edit, and ship in minutes.</p>
+
+  <div class="grid grid-2" style="margin-top:28px">
+    <div class="tmpl"><div class="ico">🛒</div><div><h3>E-Commerce Order Pipeline</h3><p>Payment verify → fulfillment → receipt → analytics. Handles digital + physical goods with branching.</p></div></div>
+    <div class="tmpl"><div class="ico">👤</div><div><h3>User Onboarding Flow</h3><p>Signup → welcome email → CRM create → trial expiry reminder → upgrade nudge sequence.</p></div></div>
+    <div class="tmpl"><div class="ico">🐛</div><div><h3>Incident Response Bot</h3><p>Alert received → classify severity → page oncall → create Jira → post-mortem template. Integrates with PulsarOps.</p></div></div>
+    <div class="tmpl"><div class="ico">📝</div><div><h3>Content Publishing Pipeline</h3><p>Draft → AI review → schedule → publish to CMS + social → track engagement → weekly report.</p></div></div>
+    <div class="tmpl"><div class="ico">💰</div><div><h3>Invoice & Collections</h3><p>Generate invoice → send → track opens → escalate overdue → write off after 90 days.</p></div></div>
+    <div class="tmpl"><div class="ico">🔄</div><div><h3>Data Sync Engine</h3><p>Sync between Notion ↔ Airtable ↔ PostgreSQL with conflict resolution and audit log.</p></div></div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- INTEGRATIONS -->
+<section id="integrations" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> Integrations</span>
+  <h2>200+ connectors, first-party maintained</h2>
+  <p class="lead">Every connector is tested, versioned, and ships with type-safe inputs and outputs.</p>
+  <div class="int-grid" style="margin-top:28px">
+    <div class="int-item"><span class="ico">💳</span>Stripe</div>
+    <div class="int-item"><span class="ico">🛍</span>Shopify</div>
+    <div class="int-item"><span class="ico">💬</span>Slack</div>
+    <div class="int-item"><span class="ico">🐙</span>GitHub</div>
+    <div class="int-item"><span class="ico">📋</span>Linear</div>
+    <div class="int-item"><span class="ico">📝</span>Notion</div>
+    <div class="int-item"><span class="ico">📊</span>Airtable</div>
+    <div class="int-item"><span class="ico">🐘</span>PostgreSQL</div>
+    <div class="int-item"><span class="ico">🍃</span>MongoDB</div>
+    <div class="int-item"><span class="ico">☁️</span>S3</div>
+    <div class="int-item"><span class="ico">📧</span>SendGrid</div>
+    <div class="int-item"><span class="ico">🔵</span>Twilio</div>
+    <div class="int-item"><span class="ico">🦊</span>Jira</div>
+    <div class="int-item"><span class="ico">🔷</span>HubSpot</div>
+    <div class="int-item"><span class="ico">🟣</span>Zapier-compat</div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- ECOSYSTEM -->
+<section id="ecosystem" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> Ecosystem</span>
+  <h2>Part of a complete AI-native stack</h2>
+  <p class="lead">QuantumFlow orchestrates workflows. NebulaCraft writes the code. PulsarOps runs it in production. Together, they form a full dev-to-ops-to-automation loop.</p>
+
+  <div class="ecosystem">
+    <div class="eco-card">
+      <span class="ico">⚡</span>
+      <h4>NebulaCraft</h4>
+      <p>AI Code Synthesis Studio. Turn natural language into production-ready code.</p>
+      <a href="https://nebulacraft-ai-studio.vercel.app" target="_blank">Visit NebulaCraft →</a>
+    </div>
+    <div class="eco-card" style="border-color:rgba(245,158,11,.3)">
+      <span class="ico">🔥</span>
+      <h4>QuantumFlow</h4>
+      <p>AI Workflow Automation Engine. Automate any business process with AI.</p>
+      <a href="#">You are here</a>
+    </div>
+    <div class="eco-card">
+      <span class="ico">📡</span>
+      <h4>PulsarOps</h4>
+      <p>AI DevOps Copilot. Monitor, detect, and self-heal infrastructure.</p>
+      <a href="https://pulsarops-devops-copilot.vercel.app" target="_blank">Visit PulsarOps →</a>
+    </div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- USE CASES -->
+<section id="usecases" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> Use Cases</span>
+  <h2>Teams automating with QuantumFlow</h2>
+  <div class="timeline">
+    <div class="tl-item"><h3>SaaS · Trial-to-paid conversion pipeline</h3><p>Automated 7-step nurture sequence triggered by usage patterns. Conversion rate improved 34% with AI-personalized email timing. Saved 12 hours/week of manual outreach.</p></div>
+    <div class="tl-item"><h3>Agency · Client reporting automation</h3><p>Pull data from 8 platforms (Google Ads, Meta, LinkedIn, etc.), merge into branded PDF, deliver to clients every Monday at 9am. Reduced reporting from 6 hours to 0.</p></div>
+    <div class="tl-item"><h3>Fintech · KYC document verification</h3><p>Upload → OCR extraction → AI classification → compliance check → human review if flagged → approval notification. 94% auto-approved, average 4 minutes end-to-end.</p></div>
+    <div class="tl-item"><h3>E-commerce · Inventory sync across 5 warehouses</h3><p>Real-time stock levels from Shopify, Amazon, eBay, and two physical stores. Auto-reorder when SKU hits threshold. Saved $23k/month in overselling penalties.</p></div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- PRICING -->
+<section id="pricing" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> Pricing</span>
+  <h2>Pay per execution, not per seat</h2>
+  <p class="lead">Transparent, usage-based pricing. No surprises.</p>
+  <div class="grid grid-3" style="margin-top:32px">
+    <div class="price">
+      <h3>Starter</h3>
+      <div class="amt">$0<span style="font-size:14px;color:var(--muted)">/mo</span></div>
+      <p style="color:var(--muted)">For personal projects and experiments.</p>
+      <ul>
+        <li>1,000 executions / month</li><li>5 workflows</li>
+        <li>50 connectors</li><li>Community support</li>
+      </ul>
+      <a class="btn" href="#" style="width:100%;justify-content:center">Get started</a>
+    </div>
+    <div class="price hot">
+      <span class="ribbon">Most Popular</span>
+      <h3>Pro</h3>
+      <div class="amt">$49<span style="font-size:14px;color:var(--muted)">/mo</span></div>
+      <p style="color:var(--muted)">For growing teams with real automation needs.</p>
+      <ul>
+        <li>50,000 executions / month</li><li>Unlimited workflows</li>
+        <li>200+ connectors</li><li>AI workflow designer</li>
+        <li>Custom code nodes</li>
+      </ul>
+      <a class="btn btn-accent" href="#" style="width:100%;justify-content:center">Start 14-day trial</a>
+    </div>
+    <div class="price">
+      <h3>Enterprise</h3>
+      <div class="amt">$299<span style="font-size:14px;color:var(--muted)">/mo</span></div>
+      <p style="color:var(--muted)">For organizations with compliance and scale needs.</p>
+      <ul>
+        <li>Unlimited executions</li><li>Multi-region deployment</li>
+        <li>SOC 2 + GDPR controls</li><li>SSO + SCIM</li><li>Dedicated support + SLA</li>
+      </ul>
+      <a class="btn" href="#" style="width:100%;justify-content:center">Talk to sales</a>
+    </div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- DOCS -->
+<section id="docs" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> Quickstart</span>
+  <h2>First workflow in 60 seconds</h2>
+  <div class="grid grid-2" style="margin-top:28px">
+    <div class="code">
+      <div class="code-bar"><span class="dot-r dr1"></span><span class="dot-r dr2"></span><span class="dot-r dr3"></span><span class="file mono">install.sh</span></div>
+<pre><span class="cm"># Install the CLI</span>
+$ curl -fsSL quantumflow.dev/install | sh
+
+<span class="cm"># Login</span>
+$ qflow auth login
+
+<span class="cm"># Create from template</span>
+$ qflow create order-pipeline \
+    --template ecommerce \
+    --model mimo-v2.5-pro
+✓ Workflow created in ./order-pipeline/
+
+<span class="cm"># Deploy</span>
+$ qflow deploy
+<span class="ok">✓ Live at https://hooks.quantumflow.dev/wh/...</span>
+</pre>
+    </div>
+    <div class="code">
+      <div class="code-bar"><span class="dot-r dr1"></span><span class="dot-r dr2"></span><span class="dot-r dr3"></span><span class="file mono">ai-design.sh</span></div>
+<pre><span class="cm"># Let AI design the workflow</span>
+$ qflow ask "When a Stripe payment fails,
+  retry 3 times, then email the customer
+  and alert the billing team on Slack"
+
+<span class="ok">→ AI designed 6-step workflow:</span>
+  1. stripe.payment_intent.retrieve
+  2. retry(3, backoff=exponential)
+  3. branch: if still failed
+  4. sendgrid.mail.send(customer)
+  5. slack.chat.postMessage(#billing)
+  6. log: mixpanel.track
+
+<span class="cm"># Deploy the AI-designed workflow</span>
+$ qflow deploy --approve
+<span class="ok">✓ 6 steps deployed · webhook ready</span>
+</pre>
+    </div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- BLOG -->
+<section id="blog" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> Engineering Blog</span>
+  <h2>What we're learning</h2>
+  <div class="grid grid-3" style="margin-top:28px">
+    <div class="card"><div class="icon">🧠</div><h3>Why LLMs beat visual builders for complex flows</h3><p>Our AI designer produces 40% fewer steps than hand-built workflows — and catches edge cases humans miss.</p><p class="mono" style="margin-top:12px;font-size:12px;color:var(--accent)">May 21 · 9 min</p></div>
+    <div class="card"><div class="icon">🔧</div><h3>Building reliable connectors at scale</h3><p>How we maintain 200+ API integrations with automated contract testing and version pinning.</p><p class="mono" style="margin-top:12px;font-size:12px;color:var(--accent)">May 15 · 11 min</p></div>
+    <div class="card"><div class="icon">⚡</div><h3>Sub-second workflow execution</h3><p>Our warm-pool architecture: pre-warmed containers, edge caching, and predictive scaling with MiMo.</p><p class="mono" style="margin-top:12px;font-size:12px;color:var(--accent)">May 8 · 7 min</p></div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- FAQ -->
+<section id="faq" class="reveal">
+  <span class="eyebrow"><span class="dot"></span> FAQ</span>
+  <h2>Common questions</h2>
+  <div style="margin-top:24px;max-width:860px">
+    <details open><summary>How is QuantumFlow different from Zapier or n8n?</summary><p>Zapier is point-and-click. n8n is self-hosted visual builder. QuantumFlow adds an AI designer (describe in English → executable workflow), MiMo-powered optimization, custom code nodes with full dependency support, and sub-second execution with warm pools.</p></details>
+    <details><summary>What happens if a step fails?</p></p><p>Configurable retries with exponential backoff, dead-letter queues, and human-in-the-loop approval gates. Every failure is logged with full context for debugging.</p></details>
+    <details><summary>Can I use my own code in workflows?</summary><p>Yes. Custom code nodes support Python, JavaScript, and shell scripts with full npm/pip dependency resolution in isolated sandboxes.</p></details>
+    <details><summary>How does QuantumFlow relate to NebulaCraft and PulsarOps?</summary><p>QuantumFlow orchestrates business workflows. <a href="https://nebulacraft-ai-studio.vercel.app" style="color:var(--accent)">NebulaCraft</a> writes the code. <a href="https://pulsarops-devops-copilot.vercel.app" style="color:var(--accent)">PulsarOps</a> runs it in production. Together they form a complete AI-native development and operations stack — all built on MiMo-Series models.</p></details>
+    <details><summary>Is my data secure?</summary><p>All data encrypted in transit (TLS 1.3) and at rest (AES-256). Per-workflow secret vault. SOC 2 Type II certified. Multi-region deployment for data residency requirements.</p></details>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-inner">
+    <div>
+      <div class="brand"><div class="logo"></div> QuantumFlow</div>
+      <p style="color:var(--muted);font-size:13.5px;margin-top:12px;max-width:330px">AI workflow automation engine. Design, optimize, and run pipelines — powered by MiMo. Part of the 100T Token Initiative.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
+        <a class="link-banner" href="https://nebulacraft-ai-studio.vercel.app" target="_blank" style="font-size:12px">⚡ NebulaCraft</a>
+        <a class="link-banner" href="https://pulsarops-devops-copilot.vercel.app" target="_blank" style="font-size:12px">📡 PulsarOps</a>
+      </div>
+    </div>
+    <div><h4>Product</h4><ul><li><a href="#features">Features</a></li><li><a href="#builder">Builder</a></li><li><a href="#templates">Templates</a></li><li><a href="#pricing">Pricing</a></li></ul></div>
+    <div><h4>Resources</h4><ul><li><a href="#docs">Docs</a></li><li><a href="#blog">Blog</a></li><li><a href="#integrations">Integrations</a></li><li><a href="#faq">FAQ</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Careers</a></li><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul></div>
+  </div>
+  <div class="copy">© 2026 QuantumFlow · Built with MiMo · 100T Token Initiative · <a href="https://nebulacraft-ai-studio.vercel.app" style="color:var(--accent)">NebulaCraft</a> · <a href="https://pulsarops-devops-copilot.vercel.app" style="color:var(--accent)">PulsarOps</a></div>
+</footer>
+
+<script>
+  const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('in')),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  /* Ember/orange particle background */
+  (()=>{
+    const c=document.getElementById('bgCanvas'),ctx=c.getContext('2d');
+    let w,h,nodes=[];
+    function resize(){
+      w=c.width=innerWidth*devicePixelRatio;h=c.height=innerHeight*devicePixelRatio;
+      c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';
+      nodes=Array.from({length:140},()=>({
+        x:Math.random()*w,y:Math.random()*h,
+        vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,
+        r:Math.random()*1.2+.4,
+        hue:Math.random()*40+20  /* amber range */
+      }));
+    }
+    resize();addEventListener('resize',resize);
+    function loop(){
+      ctx.clearRect(0,0,w,h);
+      for(const n of nodes){
+        n.x+=n.vx;n.y+=n.vy;
+        if(n.x<0||n.x>w)n.vx*=-1;if(n.y<0||n.y>h)n.vy*=-1;
+        ctx.beginPath();ctx.fillStyle=`hsla(${n.hue},100%,65%,.4)`;
+        ctx.arc(n.x,n.y,n.r*devicePixelRatio,0,Math.PI*2);ctx.fill();
+      }
+      for(let i=0;i<nodes.length;i++){
+        for(let j=i+1;j<nodes.length;j++){
+          const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+          if(d<130*devicePixelRatio){
+            ctx.strokeStyle=`rgba(245,158,11,${(1-d/(130*devicePixelRatio))*.12})`;
+            ctx.lineWidth=devicePixelRatio*.4;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+  })();
+</script>
+</body>
+</html>
